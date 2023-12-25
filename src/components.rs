@@ -5,6 +5,12 @@ pub enum PlayerType {
     Right,
 }
 
+#[derive(PartialEq, Debug)]
+pub enum BallState {
+    Idle,
+    Moving,
+}
+
 #[derive(Component)]
 pub struct PlayerSide(pub PlayerType);
 
@@ -21,4 +27,14 @@ impl Player {
             score: 0,
         }
     }
+}
+
+#[derive(Component)]
+pub struct Ball;
+
+#[derive(Component)]
+pub struct BallStateComp {
+    pub actions: BallState,
+    pub direction: Vec3,
+    pub speed: f32,
 }
