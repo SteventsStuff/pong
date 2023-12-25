@@ -7,6 +7,7 @@ use crate::{
     constants::{
         BALL_SIZE, BALL_SPEED, PLAYER_HEIGHT, PLAYER_SPEED, PLAYER_VECTOR_OFFSET, PLAYER_WIDTH,
     },
+    states::AppState,
 };
 
 pub fn setup(
@@ -186,5 +187,22 @@ pub fn ball_collide_with_player(
     {
         println!("COLLISION");
         ball_state.direction.x = -1.0 * ball_state.direction.x;
+    }
+}
+
+pub fn handle_game_control_input(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut next_state: ResMut<NextState<AppState>>,
+    app_state: Res<State<AppState>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Escape) {
+        match app_state.get() {
+            AppState::InGame => {
+                next_state.set(AppState::Paused);
+            }
+            AppState::Paused => {
+                next_state.set(AppState::InGame);
+            }
+        }
     }
 }
