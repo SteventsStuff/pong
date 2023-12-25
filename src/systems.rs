@@ -1,10 +1,12 @@
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{prelude::*, sprite::collide_aabb::collide, window::PrimaryWindow};
 use rand::Rng;
 
 use crate::{
     bundles,
     components::{Ball, BallState, BallStateComp, Player, PlayerSide, PlayerType},
-    constants::{BALL_SIZE, BALL_SPEED, PLAYER_HEIGHT, PLAYER_SPEED, PLAYER_VECTOR_OFFSET},
+    constants::{
+        BALL_SIZE, BALL_SPEED, PLAYER_HEIGHT, PLAYER_SPEED, PLAYER_VECTOR_OFFSET, PLAYER_WIDTH,
+    },
 };
 
 pub fn setup(
@@ -148,9 +150,41 @@ pub fn player_movement(
     }
 }
 
-fn ball_collide_with_player(
-    mut ball_q: Query<(&Transform, &mut BallStateComp), With<Ball>>,
-    mut players_q: Query<&mut Transform, With<Player>>,
+pub fn ball_collide_with_player(
+    mut ball_q: Query<(&Transform, &mut BallStateComp)>,
+    players_q: Query<(&PlayerSide, &Transform)>,
 ) {
-    
+    let (ball_transform, mut ball_state) = ball_q.single_mut();
+
+    let mut player_left_transform = None;
+    let mut player_right_transform = None;
+    for (player_side, player_transform) in players_q.iter() {
+        match player_side.0 {
+            PlayerType::Left => {
+                player_left_transform = Some(player_transform);
+            }
+            PlayerType::Right => {
+                player_right_transform = Some(player_transform);
+            }
+        }
+    }
+
+    if collide(
+        ball_transform.translation,
+        Vec2::new(BALL_SIZE, BALL_SIZE),
+        player_left_transform.unwrap().translation,
+        Vec2::new(PLAYER_WIDTH, PLAYER_HEIGHT),
+    )
+    .is_some()
+        || collide(
+            ball_transform.translation,
+            Vec2::new(BALL_SIZE, BALL_SIZE),
+            player_right_transform.unwrap().translation,
+            Vec2::new(PLAYER_WIDTH, PLAYER_HEIGHT),
+        )
+        .is_some()
+    {
+        println!("COLLISION");
+        ball_state.direction.x = -1.0 * ball_state.direction.x;
+    }
 }
